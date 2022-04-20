@@ -1,6 +1,4 @@
 #include <iostream>
-//#include "raylib.h"
-//#include <math.h>
 #include "realize.h"
 
 using namespace std;
@@ -9,7 +7,6 @@ const Vector2 VEC_ZERO = {0, 0};
 
 
 int main() {
-//    Game();
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(WIND_WIDTH, WIND_HEIGHT, "Game_Snake");
     SetTargetFPS(60);

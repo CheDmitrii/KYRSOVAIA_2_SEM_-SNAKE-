@@ -15,6 +15,7 @@ int main() {
     SetTextureFilter(canvas.texture, TEXTURE_FILTER_POINT);
     setup();
 
+
     while(!WindowShouldClose()){
         BeginDrawing();
 
@@ -27,8 +28,8 @@ int main() {
 
         EndDrawing();
 
-
         Update();
+
     }
 
     CloseWindow();

@@ -3,50 +3,141 @@
 #include <iostream>
 #include <math.h>
 
+//TODO: normal dezine of blinking
+//TODO: seting menu
+//TODO: main menu
+
 
 int score = 0;
-int PauseState;
-int PlayState;
 bool game_over = false;
 
-Vector2 posPause_Collision = {10, 10};
-Vector2 posPlay_Collision = {10, 10};
 Vector2 posPause = {0, 0};
 Vector2 posPlay = {0, 0};
+Vector2 posSet = {22, 0};
 Vector2 MousePoint = {0, 0};
 Vector2 pos = {0.0f,0.0f};
-Vector2 Treang_1 = {0, 0};
-Vector2 Treang_2 = {10, 5};
-Vector2 Treang_3 = {0, 10};
-Rectangle PauseRec = {0, 0, 20,20};
-Rectangle PlayRec = {0, 0, 20, 20};
-snake MainSnake;
+
+Rectangle Exit = {190, 220, 120, 40};
+
+Snake_part Body[FIELD_WIDTH][FIELD_HEIGHT];
 
 food Food;
 
-Snake_part Body[FIELD_WIDTH][FIELD_HEIGHT];
-Circule Paus = {.pos_x = 10,
-                .pos_y = 10,
-                .radius = 10,
-                .vec_Pause = {10, 10}
+snake MainSnake = {.body_color = GRAY,
+                   .heard_color = DARKGRAY
 };
 
-Circule Pla = {.pos_x = 10,
-               .pos_y = 10,
-               .radius = 10,
-               .vec_Pause = {10, 10}
+Button exit_but = {.name = "EXIT",
+                   .posRec_x = 190,
+                   .posRec_y = 230,
+                   .posText_x = 200,
+                   .posText_y = 230,
+                   .width = 120,
+                   .height = 40,
+                   .active = false
 };
 
-blinking blink = {.speed = 1,
-                  .update_past = 0,
-                  .update_presert = 0
-}; // for blinking game over's table
+Button restart_but = {.name = "RESTART",
+                      .posRec_x = 190,
+                      .posRec_y = 130,
+                      .posText_x = 195,
+                      .posText_y = 140,
+                      .width = 120,
+                      .height = 40,
+                      .active = false
+};
+
+Button parametrsSnake_but = {.name = "PARAMETRS",
+                             .posRec_x = 190,
+                             .posRec_y = 180,
+                             .posText_x = 193,
+                             .posText_y = 190,
+                             .width = 120,
+                             .height = 40,
+                             .active = false
+};
+
+Button menuSetting_but = {.name = "MENU",
+                          .posRec_x = 190,
+                          .posRec_y = 80,
+                          .posText_x = 193,
+                          .posText_y = 80,
+                          .width = 120,
+                          .height = 40,
+                          .active = false
+};
+
+Button backSet_but = {.name = "BACK",
+                   .posRec_x = 133,
+                   .posRec_y = 68,
+                   .posText_x = 133,
+                   .posText_y = 68,
+                   .width = 50,
+                   .height = 20,
+                   .active = false
+};
+
+Button backPar_but = {.name = "BACK",
+                      .posRec_x = 133,
+                      .posRec_y = 68,
+                      .posText_x = 133,
+                      .posText_y = 68,
+                      .width = 50,
+                      .height = 20,
+                      .active = false
+};
+
+Button speed_but = {.name = "SPEED",
+                    .posRec_x = 190,
+                    .posRec_y = 80,
+                    .width = 120,
+                    .height = 40,
+                    .posText_x = 193,
+                    .posText_y = 81
+};
+
+Button speedPlus_but = {.name = "+",
+                        .posRec_x = 190,
+                        .posRec_y = 180,
+                        .width = 55,
+                        .height = 40,
+                        .active = false
+};
+
+Button speedMinus_but = {.name = "-",
+                         .posRec_x = 255,
+                         .posRec_y = 180,
+                         .width = 55,
+                         .height = 40,
+                         .active = false
+};
+
+blinking blink_game_over = {.speed = 1,
+                            .update_past = 0,
+                            .update_presert = 0
+}; // for blinking gameover's table
+
+blinking blink_pause = {.speed = 1,
+                        .update_past = 0,
+                        .update_presert = 0
+}; // for blinking pause's table
 
 PausePlay Pause_Play = {.pos_x = 0,
                         .pos_y = 0,
                         .active_play = false,
                         .active_pause = true,
-                        .draw = true
+                        .pause_state = 0,
+                        .play_state = 0
+};
+
+settings Setting = {.pos_x = 22,
+                    .pos_y = 0,
+                    .settings_state = 0,
+                    .active = false
+};
+
+Speed Snake_speed = {.speed_intput = 0.2,
+                     .speed_output = 20
 };
 
 void setPlayPNG(){
@@ -57,11 +148,27 @@ void setPausePNG(){
     Pause_Play.tex_pause = LoadTexture("/Users/ekaterinacebykina/Desktop/labi_si++/KYRSACH_SNAKE/Motion/MENU/PAUSE_PAUSE.png");
 }
 
+void setSettingsPNG(){
+    Setting.tex = LoadTexture("/Users/ekaterinacebykina/Desktop/labi_si++/KYRSACH_SNAKE/Motion/MENU/setting_22.png");
+}
+
 void ParametrsPNG(){
-    float Scale_Play_Width = 20 / (float)Pause_Play.tex_play.width;
-    float Scale_Play_Height = 20 / (float)Pause_Play.tex_play.height;
-    float Scale_Pause_Width = 20 / (float)Pause_Play.tex_pause.width;
-    float Scale_Pause_Height = 20 / (float)Pause_Play.tex_pause.height;
+    float scale_Button_Width = (float)GetScreenWidth() / FIELD_WIDTH;
+    float scale_Button_Height = (float)GetScreenHeight() / FIELD_HEIGHT;
+
+    float Scale_Play_Width = scale_Button_Width / (float)Pause_Play.tex_play.width;
+    float Scale_Play_Height = scale_Button_Height / (float)Pause_Play.tex_play.height;
+    float Scale_Pause_Width = scale_Button_Width / (float)Pause_Play.tex_pause.width;
+    float Scale_Pause_Height = scale_Button_Height / (float)Pause_Play.tex_pause.height;
+
+    float Scale_Setting_Width = scale_Button_Width / (float)Setting.tex.width;
+    float Scale_Setting_Height = scale_Button_Height / (float)Setting.tex.height;
+
+    float scaleSetting;
+    scaleSetting = fminf(Scale_Setting_Width, Scale_Setting_Height);
+
+    Setting.scale_settings = scaleSetting;
+
 
     float scalePause;
     float scalePlay;
@@ -75,6 +182,124 @@ void ParametrsPNG(){
 void UnLoadPNG(){
     UnloadTexture(Pause_Play.tex_pause);
     UnloadTexture(Pause_Play.tex_play);
+    UnloadTexture(Setting.tex);
+}
+
+void DrawButtonExit(){
+    if (exit_but.state == 1 || exit_but.state == 2){
+        DrawRectangle(exit_but.posRec_x, exit_but.posRec_y, exit_but.width, exit_but.height, BLACK);
+        DrawText(exit_but.name, exit_but.posText_x, exit_but.posText_y, 40, WHITE);
+    }else {
+        DrawRectangle(exit_but.posRec_x, exit_but.posRec_y, exit_but.width, exit_but.height, RED);
+        DrawText(exit_but.name, exit_but.posText_x, exit_but.posText_y, 40, BLACK);
+    }
+}
+
+void DrawButtonRestart(){
+    if (restart_but.state == 1 || restart_but.state == 2){
+        DrawRectangle(restart_but.posRec_x, restart_but.posRec_y, restart_but.width, restart_but.height, BLACK);
+        DrawText(restart_but.name, restart_but.posText_x, restart_but.posText_y, 23, WHITE);
+    }else {
+        DrawRectangle(restart_but.posRec_x, restart_but.posRec_y, restart_but.width, restart_but.height, RED);
+        DrawText(restart_but.name, restart_but.posText_x, restart_but.posText_y, 23, BLACK);
+    }
+}
+
+void DrawButtonParametrsSnake(){
+    if (parametrsSnake_but.state == 1 || parametrsSnake_but.state == 2){
+        DrawRectangle(parametrsSnake_but.posRec_x, parametrsSnake_but.posRec_y, parametrsSnake_but.width, parametrsSnake_but.height, BLACK);
+        DrawText(parametrsSnake_but.name, parametrsSnake_but.posText_x, parametrsSnake_but.posText_y, 19, WHITE);
+    }else {
+        DrawRectangle(parametrsSnake_but.posRec_x, parametrsSnake_but.posRec_y, parametrsSnake_but.width, parametrsSnake_but.height, RED);
+        DrawText(parametrsSnake_but.name, parametrsSnake_but.posText_x, parametrsSnake_but.posText_y, 19, BLACK);
+    }
+
+}
+
+void DrawButtonMenuSetting(){
+    if (menuSetting_but.state == 1 || menuSetting_but.state == 2){
+        DrawRectangle(190, 80, 120, 40, BLACK);
+        DrawText(menuSetting_but.name, 193, 80, 40, WHITE);
+    }else {
+        DrawRectangle(190, 80, 120, 40, RED);
+        DrawText(menuSetting_but.name, 193, 80, 40, BLACK);
+    }
+}
+
+void DrawButtonBackSetting(){
+    if (backSet_but.state == 1 || backSet_but.state == 2){
+        DrawRectangle(backSet_but.posRec_x, backSet_but.posRec_y, backSet_but.width, backSet_but.height, BLACK);
+        DrawText(backSet_but.name, backSet_but.posText_x, backSet_but.posText_y, 19, WHITE);
+    }else {
+        DrawRectangle(backSet_but.posRec_x, backSet_but.posRec_y, backSet_but.width, backSet_but.height, RED);
+        DrawText(backSet_but.name, backSet_but.posText_x, backSet_but.posText_y, 19, BLACK);
+    }
+}
+
+void DrawButtonSpeedText(){
+    DrawRectangle(speed_but.posRec_x, speed_but.posRec_y, speed_but.width, speed_but.height, RED);
+    DrawText(speed_but.name, speed_but.posText_x, speed_but.posText_y, 34, BLACK);
+}
+
+void DrawSpeedScreen(){
+//    DrawRectangle(190, 130, 120, 40, RED);
+    DrawRectangle(190, 130, 6, 40, BLACK);
+    DrawRectangle(190, 130, 120, 6, BLACK);
+    DrawRectangle(190 + 120 - 6, 130, 6, 40, BLACK);
+    DrawRectangle(190, 130 + 40 - 6, 120, 6, BLACK);
+    DrawText(TextFormat("%03i", Snake_speed.speed_output), 225, 136, 30, BLACK);
+}
+
+void DrawSpeedDOWN(){
+    DrawRectangle(190, 180, 55, 40, RED);
+    DrawRectangle(190, 180, 6, 40, BLACK);
+    DrawRectangle(190, 180, 55, 6, BLACK);
+    DrawRectangle(190 + 55 - 6, 180, 6, 40, BLACK);
+    DrawRectangle(190, 180 + 40 - 6, 55, 6, BLACK);
+    DrawText("-", 190 + 19, 181, 40, BLACK);
+}
+
+void DrawSpeedUP(){
+    DrawRectangle(255, 180, 55, 40, RED);
+    DrawRectangle(255, 180, 6, 40, BLACK);
+    DrawRectangle(255, 180, 55, 6, BLACK);
+    DrawRectangle(255 + 55 - 6, 180, 6, 40, BLACK);
+    DrawRectangle(255, 180 + 40 - 6, 55, 6, BLACK);
+    DrawText("+", 255 + 17, 181, 40, BLACK);
+}
+
+void DrawSpeed(){
+    DrawButtonSpeedText();
+    DrawSpeedScreen();
+    DrawSpeedUP();
+    DrawSpeedDOWN();
+}
+
+void DrawButtonBackParametrs(){
+    if (backPar_but.state == 1 || backPar_but.state == 2){
+        DrawRectangle(backPar_but.posRec_x, backPar_but.posRec_y, backPar_but.width, backPar_but.height, BLACK);
+        DrawText(backPar_but.name, backPar_but.posText_x, backPar_but.posText_y, 19, WHITE);
+    }else{
+        DrawRectangle(backPar_but.posRec_x, backPar_but.posRec_y, backPar_but.width, backPar_but.height, RED);
+        DrawText(backPar_but.name, backPar_but.posText_x, backPar_but.posText_y, 19, BLACK);
+    }
+}
+
+void DrawSetting_Buttons(){
+    DrawButtonExit();
+    DrawButtonRestart();
+    DrawButtonParametrsSnake();
+    DrawButtonParametrsSnake();
+    DrawButtonMenuSetting();
+    DrawButtonBackSetting();
+}
+
+void DrawSpeedBotton(){
+//    DrawRectangle()
+}
+
+void DrawSeedParametrs(){
+//    if ()
 }
 
 void print_scale(){
@@ -82,25 +307,74 @@ void print_scale(){
     std::cout << Pause_Play.scale_pause << std::endl;
 }
 
-// for motion start
-
-
 void DrawPause(){
-    DrawTextureEx(Pause_Play.tex_pause, posPause , 0, Pause_Play.scale_pause, WHITE);
+    if (Pause_Play.pause_state == 1 || Pause_Play.pause_state == 2){
+        DrawRectangle(0, 0, 20,20, RED);
+        DrawTextureEx(Pause_Play.tex_pause, posPause , 0, Pause_Play.scale_pause, WHITE);
+    }else{
+        DrawTextureEx(Pause_Play.tex_pause, posPause , 0, Pause_Play.scale_pause, WHITE);
+    }
 }
 
 void DrawPlay(){
-    DrawTextureEx(Pause_Play.tex_play, posPlay, 0, Pause_Play.scale_play, WHITE);
+    DrawPlayBlink();
+    if (Pause_Play.play_state == 2 || Pause_Play.play_state == 1) {
+        DrawRectangle(0, 0, 20, 20, RED);
+        DrawTextureEx(Pause_Play.tex_play, posPlay, 0, Pause_Play.scale_play, WHITE);
+    }else{
+        DrawTextureEx(Pause_Play.tex_play, posPlay, 0, Pause_Play.scale_play, WHITE);
+    }
+}
+
+void DrawPlayBlink (){
+    blink_pause.update_presert += GetFrameTime();
+    float pos_rec_x = (CANVAS_WIDTH / 8);
+    float pos_rec_y = ((CANVAS_HEIGHT - BODY_HEIGHT) / 8) * 3;
+    if (blink_pause.update_presert >= 0 && blink_pause.update_presert < (blink_pause.speed / 2)){
+        DrawRectangle(pos_rec_x, pos_rec_y, 400, 150, WHITE);
+        DrawText("PAUSE", (CANVAS_WIDTH / 2) - 160, (CANVAS_HEIGHT / 2) - 30, 100, BLACK);
+    }else{
+        if (blink_pause.update_presert > blink_pause.speed){
+            blink_pause.update_presert = 0;
+        }
+        DrawRectangle((CANVAS_WIDTH / 2) - 200, ((CANVAS_HEIGHT - BODY_HEIGHT) / 2) - 80, 400, 150, RED);
+        DrawText("PAUSE", (CANVAS_WIDTH / 2) - 160, (CANVAS_HEIGHT / 2) - 30, 100, BLACK);
+    }
+}
+
+void DrawSetting(){
+    if (Setting.settings_state == 1 || Setting.settings_state == 2){
+        DrawRectangle(22, 0, 20, 20, RED);
+        DrawTextureEx(Setting.tex, posSet, 0, Setting.scale_settings, WHITE);
+    }else{
+        DrawTextureEx(Setting.tex, posSet, 0, Setting.scale_settings, WHITE);
+    }
+}
+
+void DrawParametrButtons(){
+    DrawTextureEx(Setting.tex, posSet, 0, Setting.scale_settings, WHITE);
+    DrawTextureEx(Setting.tex, posSet, 0, Setting.scale_settings, WHITE);
+    DrawRectangle(125, 60, 250, 240, WHITE);
+    DrawRectangle(125, 60, 8, 240, BROWN);
+    DrawRectangle(125, 60, 250, 8, BROWN);
+    DrawRectangle(125 + 250 - 8, 60, 8, 240, BROWN);
+    DrawRectangle(125, 60 + 240 - 8, 250, 8, BROWN);
+    DrawButtonBackParametrs();
+    DrawSpeed();
+}
+
+void DrawSettingActive(){
+    DrawTextureEx(Setting.tex, posSet, 0, Setting.scale_settings, WHITE);
+    DrawRectangle(125, 60, 250, 240, WHITE);
+    DrawRectangle(125, 60, 8, 240, BROWN);
+    DrawRectangle(125, 60, 250, 8, BROWN);
+    DrawRectangle(125 + 250 - 8, 60, 8, 240, BROWN);
+    DrawRectangle(125, 60 + 240 - 8, 250, 8, BROWN);
+    DrawSetting_Buttons();
 }
 
 bool active = false;
 int framesCounter = 0;
-//fot motion end
-
-
-//void PlayPause(){
-
-//}
 
 Rectangle GetCanvasTarget(){
     float screen_h = (float)GetScreenHeight();
@@ -108,6 +382,13 @@ Rectangle GetCanvasTarget(){
     float scale = fminf(screen_h / CANVAS_HEIGHT, screen_w / CANVAS_WIDTH);
     Rectangle rec = {0,0, CANVAS_WIDTH * scale, CANVAS_HEIGHT * scale};
     return rec;
+}
+
+float ScaleCanvas(){
+    float screen_h = (float)GetScreenHeight();
+    float screen_w = (float)GetScreenWidth();
+    float scale = fminf(screen_h / CANVAS_HEIGHT, screen_w / CANVAS_WIDTH);
+    return scale;
 }
 
 void InitSnake(){
@@ -134,31 +415,31 @@ void DropFood(){
 }
 
 void setup(){
-//    Pause_Play = {.pos_x = 0,
-//                  .pos_y = 0,
-//                  .active_play = false,
-//                  .active_pause = true,
-//                  .draw = true
-//    };
     game_over = false;
     score = 0;
     MousePoint = GetMousePosition();
-    MainSnake = {.dir_x = 1, // 1 - right, -1 - left, 0 - howhere
-                 .dir_y = 0, // 1 - up, -1 - down, 0 - nowhere
+    MainSnake = {.dir_x = 1,                    // 1 - right, -1 - left, 0 - howhere
+                 .dir_y = 0,                    // 1 - up, -1 - down, 0 - nowhere
                  .next_dir_x = 1,
                  .next_dir_y = 0,
                  .length = 2,
-                 .pos_x = FIELD_WIDTH / 2, // position of heard
-                 .pos_y = FIELD_HEIGHT / 2, // position of heard
+                 .pos_x = FIELD_WIDTH / 2,      // position of heard
+                 .pos_y = FIELD_HEIGHT / 2,     // position of heard
                  .speed = 0.2,
                  .last_update = 0,
-                 .has_eaten = false
+                 .has_eaten = false,
+                 .speed_table = 20
     };
-//    Pause_Play = {.pos_x = 10,
-//                  .pos_y = 10,
-//                  .active = false,
-//                  .scale_pause = scale_pause,
-//                  .scale_play = scale_play};
+
+    exit_but.active = false;
+    restart_but.active = false;
+    parametrsSnake_but.active = false;
+    backSet_but.active = false;
+    menuSetting_but.active = false;
+    Pause_Play.active_pause = true;
+    Pause_Play.active_play = false;
+    Setting.active = false;
+
     for (int i = 0; i < FIELD_WIDTH; i++){
         for(int j = 0; j < FIELD_HEIGHT; j++){
             Body[i][j].lifetime = 0;
@@ -213,12 +494,22 @@ void CreateButtom(){}
 void Drawline(){
     DrawRectangle(0,0, CANVAS_WIDTH, 20, WHITE);
     DrawText(TextFormat("score: %06i", score), CANVAS_WIDTH - 315,0, 20, BLACK);
-    DrawRectangle(0, 0, 90, 20, MAGENTA);
     if (Pause_Play.active_pause && !Pause_Play.active_play){
         DrawPause();
     }else {
         if (!Pause_Play.active_pause && Pause_Play.active_play){
             DrawPlay();
+        }
+    }
+    if (Setting.active){
+        if (parametrsSnake_but.active){
+            DrawParametrButtons();
+        }else{
+            DrawSettingActive();
+        }
+    } else{
+        if (!Setting.active) {
+            DrawSetting();
         }
     }
 
@@ -258,25 +549,26 @@ void DrawFood(){
 }
 
 void DrawGame(){
-    Drawline();
     DrawFood();
     DrawSnake();
+    Drawline();
     if (game_over){
-        blink.update_presert = GetFrameTime();
-//        Boom();
-        if (blink.update_presert - blink.update_past > blink.speed) {
-            blink.update_past = blink.update_presert;
+        blink_game_over.update_presert += GetFrameTime();
+        if (blink_game_over.update_presert >= 0 && blink_game_over.update_presert < (blink_game_over.speed / 2) ) {
+            DrawRectangle((CANVAS_WIDTH / 2) - 200, (CANVAS_HEIGHT / 2) - 100, 400, 150, BLANK);
+            DrawText("GAME OVER", CANVAS_WIDTH - 400, (CANVAS_HEIGHT / 2) - 50, 50, WHITE);
+            DrawText("Press SPACE to restart", CANVAS_WIDTH - 380, CANVAS_HEIGHT / 2, 20, WHITE);
+            DrawText(TextFormat("Your score: %05i", score), (CANVAS_WIDTH / 2) - 90, (CANVAS_HEIGHT / 2) - 80, 20,
+                     WHITE);
+        }else {
+            if (blink_game_over.update_presert > blink_game_over.speed) {
+                blink_game_over.update_presert = 0;
+            }
             DrawRectangle((CANVAS_WIDTH / 2) - 200, (CANVAS_HEIGHT / 2) - 100, 400, 150, WHITE);
             DrawText("GAME OVER", CANVAS_WIDTH - 400, (CANVAS_HEIGHT / 2) - 50, 50, BLACK);
             DrawText("Press SPACE to restart", CANVAS_WIDTH - 380, CANVAS_HEIGHT / 2, 20, BLACK);
             DrawText(TextFormat("Your score: %05i", score), (CANVAS_WIDTH / 2) - 90, (CANVAS_HEIGHT / 2) - 80, 20,
                      BLACK);
-        }else {
-            DrawRectangle((CANVAS_WIDTH / 2) - 200, (CANVAS_HEIGHT / 2) - 100, 400, 150, BLACK);
-            DrawText("GAME OVER", CANVAS_WIDTH - 400, (CANVAS_HEIGHT / 2) - 50, 50, WHITE);
-            DrawText("Press SPACE to restart", CANVAS_WIDTH - 380, CANVAS_HEIGHT / 2, 20, WHITE);
-            DrawText(TextFormat("Your score: %05i", score), (CANVAS_WIDTH / 2) - 90, (CANVAS_HEIGHT / 2) - 80, 20,
-                     WHITE);
         }
     }
 }
@@ -284,7 +576,7 @@ void DrawGame(){
 void ChekFood(){
     if (MainSnake.pos_x == Food.x && MainSnake.pos_y == Food.y && Food.sup_food){
         MainSnake.has_eaten = 2;
-        score += 30;
+        score += 20;
         DropFood();
     } else{
         if (MainSnake.pos_x == Food.x && MainSnake.pos_y == Food.y && !Food.sup_food){
@@ -296,26 +588,206 @@ void ChekFood(){
 }
 
 void ChekPause(){
-    if (CheckCollisionPointRec(MousePoint, PlayRec) && !Pause_Play.active_play){
+    float width_play = (float)GetScreenWidth() / FIELD_WIDTH;
+    float height_play = (float)GetScreenHeight() / FIELD_HEIGHT;
+
+    Rectangle PlayRecc = {0, 0, width_play, height_play};
+
+
+    float width_pause = (float)GetScreenWidth() / FIELD_WIDTH;
+    float height_pause = (float)GetScreenHeight() / FIELD_HEIGHT;
+
+    Rectangle PauseRecc = {0, 0, width_pause, height_pause};
+
+
+    if (CheckCollisionPointRec(MousePoint, PlayRecc) && !Pause_Play.active_play){
+        Pause_Play.pause_state = 1;
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
+            Pause_Play.pause_state = 2;
             Pause_Play.active_play = true;
             Pause_Play.active_pause = false;
         }
     }else{
-        if (CheckCollisionPointRec(MousePoint, PauseRec) && !Pause_Play.active_pause){
+        Pause_Play.pause_state = 0;
+        if (CheckCollisionPointRec(MousePoint, PauseRecc) && !Pause_Play.active_pause){
+            Pause_Play.play_state = 1;
             if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
+                Pause_Play.play_state = 2;
                 Pause_Play.active_play = false;
                 Pause_Play.active_pause = true;
             }
+        }else{
+            Pause_Play.play_state = 0;
         }
-//        if (CheckCollisionPointCircle(MousePoint, posPlay_Collision, Pla.radius) && Pause_Play.active_play){
-//            if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
-//            }
-//            if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
-//                Pause_Play.active_play = false;
-//                Pause_Play.active_pause = true;
-//            }
-//        }
+    }
+    MousePoint = GetMousePosition();
+}
+
+void ChekParametrsButtons(){
+    float scale = ScaleCanvas();
+    float delta_width = (float)GetScreenWidth() - (CANVAS_WIDTH * scale);
+    float delta_height = (float)GetScreenHeight() - (CANVAS_HEIGHT * scale);
+
+    float width_back = backPar_but.width * ((float)GetScreenWidth() - delta_width) / CANVAS_WIDTH;
+    float height_back = backPar_but.height * ((float)GetScreenHeight() - delta_height) / CANVAS_HEIGHT;
+    float pos_x_back = backPar_but.posRec_x * scale;
+    float pos_y_back = backPar_but.posRec_y * scale;
+
+    Rectangle backRec = {pos_x_back, pos_y_back, width_back, height_back};
+
+    if (CheckCollisionPointRec(MousePoint, backRec)){
+        backPar_but.state = 1;
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
+            backPar_but.state = 2;
+            backPar_but.active = true;
+            return;
+        }
+    }else{
+        backPar_but.state = 0;
+    }
+    MousePoint = GetMousePosition();
+}
+
+void ChekBackParametrsActive(){
+    if (backPar_but.active){
+        backPar_but.active = false;
+        backSet_but.active = false;
+        parametrsSnake_but.active = false;
+        Setting.active = true;
+    }
+}
+
+void ChekSettingButtonsActive(){
+    float scale = ScaleCanvas();
+    float delta_width = (float)GetScreenWidth() - (CANVAS_WIDTH * scale);
+    float delta_height = (float)GetScreenHeight() - (CANVAS_HEIGHT * scale);
+
+    float width_exit = exit_but.width * ((float)GetScreenWidth() - delta_width) / CANVAS_WIDTH;
+    float height_exit = exit_but.height * ((float)GetScreenHeight() - delta_height) / CANVAS_HEIGHT;
+    float pos_x_exit = exit_but.posRec_x * scale;
+    float pos_y_exit = exit_but.posRec_y * scale;
+    
+    Rectangle exitRec = {pos_x_exit, pos_y_exit, width_exit, height_exit};
+
+    float width_restart = restart_but.width * ((float)GetScreenWidth() - delta_width) / CANVAS_WIDTH;
+    float height_restart = restart_but.height * ((float)GetScreenHeight() - delta_height) / CANVAS_HEIGHT;
+    float pos_x_restart = restart_but.posRec_x * scale;
+    float pos_y_restart = restart_but.posRec_y * scale;
+    
+    Rectangle restartRec = {pos_x_restart, pos_y_restart, width_restart, height_restart};
+
+    float width_parametrs = parametrsSnake_but.width * ((float)GetScreenWidth() - delta_width) / CANVAS_WIDTH;
+    float height_parametrs = parametrsSnake_but.height * ((float)GetScreenHeight() - delta_height) / CANVAS_HEIGHT;
+    float pos_x_parametrs = parametrsSnake_but.posRec_x * scale;
+    float pos_y_parametrs = parametrsSnake_but.posRec_y * scale;
+
+    Rectangle parametrsRec = {pos_x_parametrs, pos_y_parametrs, width_parametrs, height_parametrs};
+
+    float width_menu = menuSetting_but.width * ((float)GetScreenWidth() - delta_width) / CANVAS_WIDTH;
+    float height_menu = menuSetting_but.height * ((float)GetScreenHeight() - delta_height) / CANVAS_HEIGHT;
+    float pos_x_menu = menuSetting_but.posRec_x * scale;
+    float pos_y_menu = menuSetting_but.posRec_y * scale;
+
+    Rectangle menuRec = {pos_x_menu, pos_y_menu, width_menu, height_menu};
+
+    float width_back = backSet_but.width * ((float)GetScreenWidth() - delta_width) / CANVAS_WIDTH;
+    float height_back = backSet_but.height * ((float)GetScreenHeight() - delta_height) / CANVAS_HEIGHT;
+    float pos_x_back = backSet_but.posRec_x * scale;
+    float pos_y_back = backSet_but.posRec_y * scale;
+
+    Rectangle backRec = {pos_x_back, pos_y_back, width_back, height_back};
+
+    if (CheckCollisionPointRec(MousePoint, exitRec)){
+        exit_but.state = 1;
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
+            exit_but.active = true;
+            exit_but.state = 2;
+            return;
+        }
+    } else{
+        exit_but.state = 0;
+    }
+    if (CheckCollisionPointRec(MousePoint, restartRec)){
+        restart_but.state = 1;
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
+            restart_but.active = true;
+            restart_but.state = 2;
+            return;
+        }
+    }else{
+        restart_but.state = 0;
+    }
+    if (CheckCollisionPointRec(MousePoint, parametrsRec)){
+        parametrsSnake_but.state = 1;
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
+            parametrsSnake_but.active = true;
+            parametrsSnake_but.state = 2;
+            return;
+        }
+    } else{
+        parametrsSnake_but.state = 0;
+    }
+    if (CheckCollisionPointRec(MousePoint, menuRec)){
+        menuSetting_but.state = 1;
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
+            menuSetting_but.active = true;
+            menuSetting_but.state = 2;
+            return;
+        }
+    }else{
+        menuSetting_but.state = 0;
+    }
+    if (CheckCollisionPointRec(MousePoint, backRec)){
+        backSet_but.state = 1;
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
+            backSet_but.active = true;
+            backSet_but.state = 2;
+            return;
+        }
+    }else{
+        backSet_but.state = 0;
+    }
+}
+
+bool exitActive(){
+    bool state;
+    if (exit_but.active){
+        state = true;
+    } else{
+        state = false;
+    }
+    return  state;
+}
+
+void restartActive(){
+    if (restart_but.active){
+        setup();
+    }
+}
+
+void ChekSetting(){
+    float width_set = (float)GetScreenWidth() / FIELD_WIDTH;
+    float height_set = (float)GetScreenHeight() / FIELD_HEIGHT;
+
+    float distance = width_set + ((5 * (float)GetScreenWidth()) / CANVAS_WIDTH);
+
+    Rectangle SetRecc = {distance, 0, width_set, height_set};
+
+    if (CheckCollisionPointRec(MousePoint, SetRecc)){
+        Setting.settings_state = 1;
+        if (Setting.active){
+            if(IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
+                Setting.active = false;
+                Setting.settings_state = 2;
+            }
+        }else{
+            if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
+                Setting.active = true;
+                Setting.settings_state = 2;
+            }
+        }
+    }else{
+        Setting.settings_state = 0;
     }
     MousePoint = GetMousePosition();
 }
@@ -323,6 +795,20 @@ void ChekPause(){
 void ChekCollision(){
     if (Body[MainSnake.pos_x][MainSnake.pos_y].lifetime > 0){
         game_over = true;
+    }
+}
+
+void ChekBackSettingActive(){
+    if (backSet_but.active){
+        Setting.active = false;
+        backSet_but.active = false;
+    }
+    MousePoint = GetMousePosition();
+}
+
+void ChekMenuButtonSettings(){
+    if (menuSetting_but.active){
+
     }
 }
 
@@ -348,6 +834,7 @@ void ControlSnake(){
 
 void MoveSnake(){
     ChekPause();
+    ChekSetting();
     MainSnake.last_update += GetFrameTime();
     if (MainSnake.last_update >= MainSnake.speed){
         MainSnake.last_update = 0;
@@ -406,6 +893,19 @@ void UpdateGame(){
     }
     if (Pause_Play.active_play && !Pause_Play.active_pause){
         ChekPause();
+//        ChekSetting();
+        return;
+    }
+    if (Setting.active){
+        Setting.settings_state = 0;
+        ChekSettingButtonsActive();
+        if (parametrsSnake_but.active){
+            ChekBackParametrsActive();
+            ChekParametrsButtons();
+            return;
+        }
+        restartActive();
+        ChekBackSettingActive();
         return;
     }
     MoveSnake();

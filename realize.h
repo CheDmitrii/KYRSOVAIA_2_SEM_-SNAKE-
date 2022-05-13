@@ -1,7 +1,3 @@
-//
-// Created by Екатерина Чебыкина on 12.04.2022.
-//
-
 #ifndef KYRSACH_SNAKE_REALIZE_H
 #define KYRSACH_SNAKE_REALIZE_H
 
@@ -41,7 +37,10 @@ struct snake{
     int pos_y;                // position snake's heard on OY
     float speed;              // in seconds till next move
     float last_update;        // time since last update
-    int has_eaten;            //has or has't eaten
+    int has_eaten;            // has or has't eaten
+    Color heard_color;        // color of snake's heard
+    Color body_color;         // color of snake's body
+    int speed_table;
 };
 struct food {
     int x;                    // position on OX
@@ -53,6 +52,14 @@ struct blinking{
     double update_past;
     double update_presert;
 };
+struct settings{
+    Texture2D tex;
+    int settings_state;
+    double scale_settings;
+    int pos_x;
+    int pos_y;
+    bool active;
+};
 struct PausePlay{
     int pos_x;
     int pos_y;
@@ -60,15 +67,25 @@ struct PausePlay{
     double scale_play;
     bool active_play;
     bool active_pause;
-    bool draw;
     Texture2D tex_play;
     Texture2D tex_pause;
+    int pause_state;
+    int play_state;
 };
-struct Circule{
-    int pos_x;
-    int pos_y;
-    float  radius;
-    Vector2 vec_Pause;
+struct Button{
+    int posRec_x;
+    int posRec_y;
+    int posText_x;
+    int posText_y;
+    int width;
+    int height;
+    char name[64];
+    bool active;
+    int state;
+};
+struct Speed{
+    int speed_output;
+    float speed_intput;
 };
 void CreateButtom();
 void DropFood();
@@ -98,6 +115,15 @@ void DrawPause();
 void print_scale();
 void DrawPlay();
 void ChekPause();
-
+void DrawPlayBlink();
+void setSettingsPNG();
+void DrawSetting();
+void DrawButtonExit();
+void DrawButtonRestart();
+void DrawButtonParametrsSnake();
+void DrawButtonBackSetting();
+void DrawButtonMenuSetting();
+void DrawSetting_Buttons();
+bool exitActive();
 
 #endif //KYRSACH_SNAKE_REALIZE_H

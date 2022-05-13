@@ -8,12 +8,15 @@ const Vector2 VEC_ZERO = {0, 0};
 
 int main() {
 
+    bool  exit_chek;
+
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(CANVAS_WIDTH, CANVAS_HEIGHT, "Game_Snake");
     SetTargetFPS(60);
 
     setPlayPNG();
     setPausePNG();
+    setSettingsPNG();
     ParametrsPNG();
 
     RenderTexture2D canvas = LoadRenderTexture(CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -35,6 +38,10 @@ int main() {
         EndDrawing();
 
         UpdateGame();
+        exit_chek = exitActive();
+        if (exit_chek){
+            return 0;
+        }
 
     }
 

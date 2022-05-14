@@ -133,7 +133,7 @@ Button speedMinus_but = {.name = "-",
 blinking blink_game_over = {.speed = 1,
                             .update_past = 0,
                             .update_presert = 0
-}; // for blinking gameover's screen
+}; // for blinking gameover's screens
 
 blinking blink_pause = {.speed = 1,
                         .update_past = 0,

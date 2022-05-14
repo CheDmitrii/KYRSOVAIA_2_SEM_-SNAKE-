@@ -13,13 +13,13 @@
 #define body_height 19.9
 #define FOOD_WIDTH 12.5
 #define FOOD_HEIGHT 12.5
-#define NUM_FRAMES_PER_LINE 5
-#define NUM_LINES 5
-#define NUM_FRAMES 3
+
 
 const int FIELD_WIDTH = CANVAS_WIDTH / BODY_WIDTH;
 const int FIELD_HEIGHT  = (CANVAS_HEIGHT / BODY_HEIGHT) - 1;
 
+const int field_width = CANVAS_WIDTH / BODY_WIDTH;
+const int field_height = CANVAS_HEIGHT / BODY_HEIGHT;
 
 
 
@@ -81,11 +81,13 @@ struct Button{
     int height;
     char name[64];
     bool active;
+    bool active_additionally;
     int state;
 };
 struct Speed{
     int speed_output;
     float speed_intput;
+    float speed_calculations;
 };
 void CreateButtom();
 void DropFood();
@@ -125,5 +127,7 @@ void DrawButtonBackSetting();
 void DrawButtonMenuSetting();
 void DrawSetting_Buttons();
 bool exitActive();
+void CoutMatrix();
+
 
 #endif //KYRSACH_SNAKE_REALIZE_H
